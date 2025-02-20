@@ -7,15 +7,35 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
 <h2>All Posts</h2>
 
 <div id="posts-container">
-    <!-- Posty będą dynamicznie ładowane tutaj -->
+    <!-- Posts will be dynamically loaded here -->
 </div>
 
+<h3>Add new post:</h3>
+<input type="text" id="postContent" placeholder="Your post content">
+<button onclick="addPost()">Add Post</button>
+
 <script>
+    let loggedInUsername = null; // Store the logged-in user's username
+
+    async function fetchUsername() {
+        try {
+            const response = await fetch('/api/username');
+            if (!response.ok) throw new Error("User not logged in");
+
+            const data = await response.json();
+            loggedInUsername = data.username; // ✅ Set global variable
+        } catch (error) {
+            console.error("Error fetching username:", error);
+            loggedInUsername = null;
+        }
+    }
+
     async function loadPosts() {
-        const response = await fetch('/posts');
+        const response = await fetch('/api/posts');
         const posts = await response.json();
 
         const container = document.getElementById('posts-container');
@@ -24,12 +44,53 @@
         posts.forEach(post => {
             const postElement = document.createElement('div');
             postElement.classList.add('post');
-            postElement.innerHTML = `<h3>User ${post.userId}</h3><p>${post.content}</p><small>${post.createdAt}</small>`;
+            postElement.innerHTML = `
+                <h3>${post.username}</h3>
+                <small>Posted: ${new Date(post.createdAt).toLocaleString()}</small>
+                <p>${post.content}</p>
+
+                ${post.username === loggedInUsername ? `<button onclick="deletePost(${post.id})">🗑 Delete</button>` : ""}
+            `;
             container.appendChild(postElement);
         });
     }
 
-    loadPosts();
+    async function addPost() {
+        const content = document.getElementById('postContent').value;
+        if (!content.trim()) {
+            alert("Content cannot be empty!");
+            return;
+        }
+
+        const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `content=${encodeURIComponent(content)}`
+        });
+
+        if (response.ok) {
+            document.getElementById('postContent').value = "";
+            loadPosts();
+        } else {
+            alert("Error adding post!");
+        }
+    }
+
+    async function deletePost(postId) {
+        const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+
+        if (response.ok) {
+            loadPosts();
+        } else {
+            alert("Error deleting post!");
+        }
+    }
+
+    // Fetch username and then load posts
+    fetchUsername().then(loadPosts);
+
 </script>
+
 </body>
+
 </html>

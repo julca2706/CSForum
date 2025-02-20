@@ -9,12 +9,12 @@ import java.util.List;
 public class PostService {
     private final PostDAO postDAO = new PostDAO();
 
-    public boolean createPost(int userId, String content) {
+    public boolean createPost(String username, String content) {
         if (content == null || content.trim().isEmpty()) {
-            return false; // Post nie może być pusty
+            return false;
         }
 
-        Post newPost = new Post(0, userId, content, new Timestamp(System.currentTimeMillis()));
+        Post newPost = new Post(0, username, content, new Timestamp(System.currentTimeMillis()));
         return postDAO.insertPost(newPost);
     }
 
@@ -22,8 +22,8 @@ public class PostService {
         return postDAO.getAllPosts();
     }
 
-    public List<Post> getPostsByUser(int userId) {
-        return postDAO.getPostsByUser(userId);
+    public List<Post> getPostsByUser(String username) {
+        return postDAO.getPostsByUser(username);
     }
 
     public boolean deletePost(int postId) {

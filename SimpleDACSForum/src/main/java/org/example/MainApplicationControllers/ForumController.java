@@ -43,11 +43,12 @@ public class ForumController {
         String sessionId = authService.loginUser(username, password);
         if (sessionId != null) {
             ctx.cookie("sessionId", sessionId);
-            ctx.result("Login successful.");
+            ctx.redirect("/posts");  // 🔄 Przekierowanie na stronę postów
         } else {
             ctx.status(401).result("Invalid username or password.");
         }
     };
+
 
     /**
      * Obsługuje wylogowanie użytkownika.
@@ -89,11 +90,35 @@ public class ForumController {
             return;
         }
 
-        boolean success = postService.createPost(user.id(), content);
+        boolean success = postService.createPost(user.username(), content);
         if (success) {
             ctx.result("Post created successfully.");
         } else {
             ctx.status(500).result("Failed to create post.");
         }
     };
+
+    /**
+     * Usuwa post, jeśli należy do zalogowanego użytkownika.
+     */
+    public Handler deletePost = ctx -> {
+        String sessionId = ctx.cookie("sessionId");
+        User user = SessionManager.getUser(sessionId);
+
+        if (user == null) {
+            ctx.status(403).result("User not logged in.");
+            return;
+        }
+
+        int postId = Integer.parseInt(ctx.pathParam("id"));
+        boolean success = postService.deletePost(postId);
+
+        if (success) {
+            ctx.result("Post deleted successfully.");
+        } else {
+            ctx.status(403).result("Unauthorized to delete this post.");
+        }
+    };
+
+
 }
