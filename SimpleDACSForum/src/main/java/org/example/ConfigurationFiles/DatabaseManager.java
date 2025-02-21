@@ -13,7 +13,7 @@ public class DatabaseManager {
         try {
             String url = "jdbc:mysql://localhost:3306/DACSForum";
             String user = "root";
-            String password = "julia123";
+            String password = "Sienkiewicz2004!";
 
             return DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
