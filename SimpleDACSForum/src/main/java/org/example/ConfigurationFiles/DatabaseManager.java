@@ -10,15 +10,13 @@ import java.util.Properties;
 public class DatabaseManager {
 
     public static Connection getConnection() {
-        try (FileInputStream fis = new FileInputStream("src/main/resources/db.properties")) {
-            Properties props = new Properties();
-            props.load(fis);
-            String url = props.getProperty("db.url");
-            String user = props.getProperty("db.user");
-            String password = props.getProperty("db.password");
+        try {
+            String url = "jdbc:mysql://localhost:3306/DACSForum";
+            String user = "root";
+            String password = "julia123";
 
-            return DriverManager.getConnection(url, user, password); // Tworzenie nowego połączenia
-        } catch (IOException | SQLException e) {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
