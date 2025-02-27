@@ -21,6 +21,11 @@ public class Main {
             config.staticFiles.add("/static", Location.CLASSPATH); // ✅ Dodano obsługę plików statycznych (CSS, JS)
         }).start(8080);
 
+        // 🔴 TEMPORARILY DISABLE SECURITY HEADERS (FOR TESTING SQL INJECTION)
+        app.before(ctx -> {
+            ctx.header("X-Content-Type-Options", "nosniff");
+            ctx.header("X-XSS-Protection", "0"); // Disable for testing SQL Injection
+        });
         // ✅ Rejestracja Thymeleaf
         JavalinRenderer.register(new JavalinThymeleaf(), ".html");
 

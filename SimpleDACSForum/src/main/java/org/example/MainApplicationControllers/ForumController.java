@@ -102,23 +102,17 @@ public class ForumController {
      * Usuwa post, jeśli należy do zalogowanego użytkownika.
      */
     public Handler deletePost = ctx -> {
-        String sessionId = ctx.cookie("sessionId");
-        User user = SessionManager.getUser(sessionId);
-
-        if (user == null) {
-            ctx.status(403).result("User not logged in.");
-            return;
-        }
-
         int postId = Integer.parseInt(ctx.pathParam("id"));
-        boolean success = postService.deletePost(postId);
+
+        boolean success = postService.deletePost(postId); // ❌ No user verification
 
         if (success) {
             ctx.result("Post deleted successfully.");
         } else {
-            ctx.status(403).result("Unauthorized to delete this post.");
+            ctx.status(500).result("Failed to delete post.");
         }
     };
+
 
 
 }
