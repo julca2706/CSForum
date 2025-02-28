@@ -8,6 +8,7 @@ import org.example.JavaModels.User;
 import org.example.JavaModels.Post;
 
 import java.util.List;
+import java.util.Map;
 
 public class ForumController {
     private final AuthService authService = new AuthService();
@@ -68,9 +69,18 @@ public class ForumController {
      * Pobiera wszystkie posty na forum.
      */
     public Handler getAllPosts = ctx -> {
+        String sessionId = ctx.cookie("sessionId");
+        User user = SessionManager.getUser(sessionId);
+
+        if (user == null) {
+            ctx.status(403).json(Map.of("error", "User not logged in"));
+            return;
+        }
+
         List<Post> posts = postService.getAllPosts();
         ctx.json(posts);
     };
+
 
     /**
      * Publikowanie nowego posta.
@@ -102,16 +112,24 @@ public class ForumController {
      * Usuwa post, jeśli należy do zalogowanego użytkownika.
      */
     public Handler deletePost = ctx -> {
-        int postId = Integer.parseInt(ctx.pathParam("id"));
+        String sessionId = ctx.cookie("sessionId");
+        User user = SessionManager.getUser(sessionId);
 
-        boolean success = postService.deletePost(postId); // ❌ No user verification
+        if (user == null) {
+            ctx.status(403).result("User not logged in.");
+            return;
+        }
+
+        int postId = Integer.parseInt(ctx.pathParam("id"));
+        boolean success = postService.deletePost(postId, user.username());
 
         if (success) {
             ctx.result("Post deleted successfully.");
         } else {
-            ctx.status(500).result("Failed to delete post.");
+            ctx.status(403).result("Unauthorized to delete this post.");
         }
     };
+
 
 
 

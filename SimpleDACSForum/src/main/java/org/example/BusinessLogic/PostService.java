@@ -26,7 +26,12 @@ public class PostService {
         return postDAO.getPostsByUser(username);
     }
 
-    public boolean deletePost(int postId) {
+    public boolean deletePost(int postId, String username) {
+        Post post = postDAO.getPostById(postId);
+        if (post == null || !post.username().equals(username)) {
+            return false; // ✅ Deny deletion if the user does not own the post
+        }
         return postDAO.deletePost(postId);
     }
+
 }
