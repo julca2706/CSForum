@@ -2,37 +2,55 @@ package org.example;
 
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
-import io.javalin.json.JsonMapper;
-import io.javalin.json.JavalinJackson;
-import io.javalin.rendering.JavalinRenderer;
-import io.javalin.rendering.template.JavalinThymeleaf;
-import org.example.UI.WebUI;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import java.nio.file.Paths;
 import org.example.MainApplicationControllers.ForumController;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.UI.WebUI;
 
 public class Main {
     public static void main(String[] args) {
-        // 🔄 Konfiguracja Jacksona jako domyślny JSON Mapper
-        JsonMapper jsonMapper = new JavalinJackson(new ObjectMapper());
-
-        // ✅ Utworzenie aplikacji Javalin
         Javalin app = Javalin.create(config -> {
-            config.jsonMapper(jsonMapper); // ✅ Rejestracja Jacksona
-            config.staticFiles.add("/static", Location.CLASSPATH); // ✅ Dodano obsługę plików statycznych (CSS, JS)
-        }).start(8080);
+            config.staticFiles.add("/static", Location.CLASSPATH);
+            config.jetty.server(() -> {
+                Server server = new Server();
 
-        // 🔴 TEMPORARILY DISABLE SECURITY HEADERS (FOR TESTING SQL INJECTION)
-        app.before(ctx -> {
-            ctx.header("X-Content-Type-Options", "nosniff");
-            ctx.header("X-XSS-Protection", "0"); // Disable for testing SQL Injection
-        });
-        // ✅ Rejestracja Thymeleaf
-        JavalinRenderer.register(new JavalinThymeleaf(), ".html");
+                // HTTP Connector (Redirect HTTP to HTTPS)
+                ServerConnector http = new ServerConnector(server);
+                http.setPort(8080);
 
-        // ✅ Konfiguracja WebUI
+                // ✅ Fixing SSL Context
+                SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+                sslContextFactory.setKeyStorePath(Paths.get("C:/Users/antek/Downloads/pobrane/CSForum/keystore.jks").toAbsolutePath().toString());
+                sslContextFactory.setKeyStorePassword("yourpassword");  // Use actual password
+                sslContextFactory.setKeyManagerPassword("yourpassword");  // Must match keystore password
+                sslContextFactory.setCertAlias("selfsigned");  // Ensure alias matches keystore
+
+                // ✅ Ensure Proper TLS and Cipher Settings
+                sslContextFactory.setIncludeProtocols("TLSv1.2", "TLSv1.3"); // Allow modern TLS
+                sslContextFactory.setExcludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"); // Exclude weak cipher
+                sslContextFactory.setEndpointIdentificationAlgorithm(null); // Fix SNI validation issues
+
+                // ✅ SecureRequestCustomizer Fix
+                HttpConfiguration httpsConfig = new HttpConfiguration();
+                httpsConfig.addCustomizer(new SecureRequestCustomizer());
+                httpsConfig.setSecureScheme("https");
+                httpsConfig.setSecurePort(8443);
+
+                ServerConnector https = new ServerConnector(
+                        server,
+                        new SslConnectionFactory(sslContextFactory, "http/1.1"),
+                        new HttpConnectionFactory(httpsConfig)
+                );
+                https.setPort(8443);
+
+                server.setConnectors(new Connector[]{http, https});
+                return server;
+            });
+        }).start();
+
+        // ✅ Restore Route Registrations
         WebUI.configure(app);
-
-        // ✅ Konfiguracja ForumController
         ForumController forumController = new ForumController();
         app.post("/register", forumController.register);
         app.post("/login", forumController.login);
@@ -41,6 +59,6 @@ public class Main {
         app.post("/api/posts", forumController.createPost);
         app.delete("/api/posts/{id}", forumController.deletePost);
 
-        System.out.println("Serwer uruchomiony na http://localhost:8080");
+        System.out.println("HTTPS Server running at https://localhost:8443");
     }
 }
