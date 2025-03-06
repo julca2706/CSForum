@@ -21,7 +21,7 @@ public class Main {
 
                 // ✅ Fixing SSL Context
                 SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-                sslContextFactory.setKeyStorePath(Paths.get("C:/Users/antek/Downloads/pobrane/CSForum/CSForum/keystore.jks").toAbsolutePath().toString());
+                sslContextFactory.setKeyStorePath(Paths.get("keystore.jks").toAbsolutePath().toString());
                 sslContextFactory.setKeyStorePassword("yourpassword");  // Use actual password
                 sslContextFactory.setKeyManagerPassword("yourpassword");  // Must match keystore password
                 sslContextFactory.setCertAlias("selfsigned");  // Ensure alias matches keystore
