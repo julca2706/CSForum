@@ -11,7 +11,7 @@ import org.example.UI.WebUI;
 public class Main {
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
-            config.staticFiles.add("/static", Location.CLASSPATH);
+            config.staticFiles.add("/static", Location.CLASSPATH); // ✅ Ensures CSS & JS load
             config.jetty.server(() -> {
                 Server server = new Server();
 
@@ -21,7 +21,7 @@ public class Main {
 
                 // ✅ Fixing SSL Context
                 SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-                sslContextFactory.setKeyStorePath(Paths.get("C:/Users/antek/Downloads/pobrane/CSForum/keystore.jks").toAbsolutePath().toString());
+                sslContextFactory.setKeyStorePath(Paths.get("C:/Users/antek/Downloads/pobrane/CSForum/CSForum/keystore.jks").toAbsolutePath().toString());
                 sslContextFactory.setKeyStorePassword("yourpassword");  // Use actual password
                 sslContextFactory.setKeyManagerPassword("yourpassword");  // Must match keystore password
                 sslContextFactory.setCertAlias("selfsigned");  // Ensure alias matches keystore
