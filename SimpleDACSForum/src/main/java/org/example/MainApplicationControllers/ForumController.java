@@ -6,13 +6,22 @@ import org.example.BusinessLogic.PostService;
 import org.example.security.SessionManager;
 import org.example.JavaModels.User;
 import org.example.JavaModels.Post;
-
+import java.util.UUID;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ForumController {
     private final AuthService authService = new AuthService();
     private final PostService postService = new PostService();
+
+
+    public Handler getCSRFToken = ctx -> {
+        String csrfToken = UUID.randomUUID().toString();
+        ctx.sessionAttribute("csrfToken", csrfToken);  // Zapisz token w sesji
+
+        ctx.json(Map.of("csrfToken", csrfToken));  // Wysyłamy token jako JSON
+    };
 
     /**
      * Obsługuje rejestrację użytkownika.
@@ -94,6 +103,18 @@ public class ForumController {
             return;
         }
 
+        // ✅ Pobranie tokena CSRF z żądania
+        String csrfTokenForm = ctx.formParam("csrfToken");
+        String csrfTokenSession = ctx.sessionAttribute("csrfToken");
+
+        // ✅ Sprawdzenie CSRF
+        if (csrfTokenForm == null || csrfTokenSession == null || !csrfTokenForm.equals(csrfTokenSession)) {
+            ctx.status(403).result("CSRF protection triggered. Invalid token.");
+            return;
+        }
+
+        ctx.sessionAttribute("csrfToken", null); // ❌ Usunięcie tokena po użyciu (zapobiega ponownemu użyciu)
+
         String content = ctx.formParam("content");
         if (content == null || content.trim().isEmpty()) {
             ctx.status(400).result("Content cannot be empty.");
@@ -108,6 +129,7 @@ public class ForumController {
         }
     };
 
+
     /**
      * Usuwa post, jeśli należy do zalogowanego użytkownika.
      */
@@ -120,6 +142,17 @@ public class ForumController {
             return;
         }
 
+        // ✅ Pobranie i weryfikacja tokena CSRF
+        String csrfTokenForm = ctx.formParam("csrfToken");
+        String csrfTokenSession = ctx.sessionAttribute("csrfToken");
+
+        if (csrfTokenForm == null || csrfTokenSession == null || !csrfTokenForm.equals(csrfTokenSession)) {
+            ctx.status(403).result("CSRF protection triggered.");
+            return;
+        }
+
+        ctx.sessionAttribute("csrfToken", null); // ❌ Usunięcie tokena po użyciu
+
         int postId = Integer.parseInt(ctx.pathParam("id"));
         boolean success = postService.deletePost(postId, user.username());
 
@@ -129,6 +162,7 @@ public class ForumController {
             ctx.status(403).result("Unauthorized to delete this post.");
         }
     };
+
 
 
 

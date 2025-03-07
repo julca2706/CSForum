@@ -2,7 +2,7 @@ package org.example.BusinessLogic;
 
 import org.example.DataAccessObjects.PostDAO;
 import org.example.JavaModels.Post;
-
+import org.apache.commons.text.StringEscapeUtils;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -13,8 +13,8 @@ public class PostService {
         if (content == null || content.trim().isEmpty()) {
             return false;
         }
-
-        Post newPost = new Post(0, username, content, new Timestamp(System.currentTimeMillis()));
+        String sanitizedContent = StringEscapeUtils.escapeHtml4(content);
+        Post newPost = new Post(0, username, sanitizedContent, new Timestamp(System.currentTimeMillis()));
         return postDAO.insertPost(newPost);
     }
 

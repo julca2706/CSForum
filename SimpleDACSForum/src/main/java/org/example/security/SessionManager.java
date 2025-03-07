@@ -8,8 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 public class SessionManager {
     private static final Map<String, User> sessions = new ConcurrentHashMap<>();
-    private static final Map<String, Integer> failedAttempts = new ConcurrentHashMap<>();
-    private static final Map<String, Long> lockedUsers = new ConcurrentHashMap<>();
 
 
     public static String createSession(User user) {
