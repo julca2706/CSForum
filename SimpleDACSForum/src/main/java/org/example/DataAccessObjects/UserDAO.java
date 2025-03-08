@@ -53,32 +53,4 @@ public class UserDAO {
         return null;
     }
 
-
-    /**
-     * Validates user login (❌ Vulnerable to SQL Injection).
-     * @param username Username.
-     * @param password Password.
-     * @return true if credentials are correct, false otherwise.
-     */
-    public boolean validateLogin(String username, String password) {
-        if (username == null || password == null) {
-            return false;
-        }
-
-        String query = "SELECT password FROM users WHERE username = '" + username + "'"; // ❌ Vulnerable
-
-        try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            if (rs.next()) {
-                String passwordDB = rs.getString("password");
-                return password.equals(passwordDB);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error during login: " + e.getMessage());
-        }
-        return false;
-    }
 }
