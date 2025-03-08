@@ -7,14 +7,16 @@ import org.example.JavaModels.User;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class WebUI {
+
     public static void configure(Javalin app) {
         app.get("/register", ctx -> ctx.render("templates/register.html"));
         app.get("/", ctx -> ctx.render("templates/login.html"));
         app.get("/posts", ctx -> ctx.render("templates/posts.html")); // ✅ No need to pass username here
 
-        // ✅ New endpoint to get logged-in username
+        // ✅ Endpoint do pobierania nazwy użytkownika
         app.get("/api/username", ctx -> {
             String sessionId = ctx.cookie("sessionId");
             User user = SessionManager.getUser(sessionId);
@@ -26,8 +28,14 @@ public class WebUI {
 
             ctx.json(Map.of("username", user.username())); // ✅ Return JSON with username
         });
-    }
 
+        // ✅ Endpoint do generowania tokena CSRF
+        app.get("/api/csrf", ctx -> {
+            String csrfToken = UUID.randomUUID().toString(); // Tworzymy unikalny token
+            ctx.sessionAttribute("csrfToken", csrfToken); // Przechowujemy w sesji
+            ctx.json(Map.of("csrfToken", csrfToken)); // Wysyłamy jako JSON
+        });
+    }
 
     private static void renderPostsPage(Context ctx) {
         String sessionId = ctx.cookie("sessionId");

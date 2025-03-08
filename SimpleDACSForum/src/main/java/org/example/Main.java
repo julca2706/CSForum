@@ -5,6 +5,8 @@ import io.javalin.http.staticfiles.Location;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import java.nio.file.Paths;
+import java.util.UUID;
+
 import org.example.MainApplicationControllers.ForumController;
 import org.example.UI.WebUI;
 
@@ -21,7 +23,7 @@ public class Main {
 
                 // ✅ Fixing SSL Context
                 SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-                sslContextFactory.setKeyStorePath(Paths.get("C:/Users/antek/Downloads/pobrane/CSForum/CSForum/keystore.jks").toAbsolutePath().toString());
+                sslContextFactory.setKeyStorePath(Paths.get("keystore.jks").toAbsolutePath().toString());
                 sslContextFactory.setKeyStorePassword("yourpassword");  // Use actual password
                 sslContextFactory.setKeyManagerPassword("yourpassword");  // Must match keystore password
                 sslContextFactory.setCertAlias("selfsigned");  // Ensure alias matches keystore
@@ -49,6 +51,13 @@ public class Main {
             });
         }).start();
 
+        app.before(ctx -> {
+            ctx.header("X-XSS-Protection", "1; mode=block"); // Protects against XSS
+            ctx.header("X-Content-Type-Options", "nosniff"); // Prevents MIME-type sniffing
+            ctx.header("X-Frame-Options", "DENY"); // Prevents clickjacking
+            //ctx.header("Content-Security-Policy", "default-src 'self'; script-src 'self'"); // Restricts JavaScript sources
+        });
+
         // ✅ Restore Route Registrations
         WebUI.configure(app);
         ForumController forumController = new ForumController();
@@ -58,6 +67,8 @@ public class Main {
         app.get("/api/posts", forumController.getAllPosts);
         app.post("/api/posts", forumController.createPost);
         app.delete("/api/posts/{id}", forumController.deletePost);
+        app.options("/*", ctx -> ctx.status(403).result("Forbidden"));
+
 
         System.out.println("HTTPS Server running at https://localhost:8443");
     }
