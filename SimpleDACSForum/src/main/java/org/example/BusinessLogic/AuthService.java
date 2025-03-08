@@ -3,7 +3,7 @@ package org.example.BusinessLogic;
 import org.example.DataAccessObjects.UserDAO;
 import org.example.JavaModels.User;
 import org.example.security.SessionManager;
-import org.apache.commons.codec.digest.DigestUtils;
+import org.mindrot.jbcrypt.BCrypt; // ✅ Import BCrypt
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,26 +15,29 @@ public class AuthService {
     private static final Map<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private static final Map<String, Long> blockedUsers = new ConcurrentHashMap<>();
 
-
-
+    /**
+     * Registers a new user with secure password hashing.
+     */
     public boolean registerUser(String username, String password) {
         User existingUser = userDAO.getUserByUsername(username);
         System.out.println("Checking if user exists: " + username);
-        System.out.println("UserDAO returned: " + existingUser);
 
         if (existingUser != null) {
             System.out.println("User already exists! Registration failed.");
             return false;
         }
 
-        String hashedPassword = DigestUtils.sha512Hex(password);
+        // ✅ Securely hash the password using BCrypt
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12)); // 12 = cost factor
         User newUser = new User(username, hashedPassword, 0);
         boolean success = userDAO.addUser(newUser);
         System.out.println(success ? "User registered successfully!" : "User registration failed.");
         return success;
     }
 
-
+    /**
+     * Logs in a user and prevents brute force attempts.
+     */
     public String loginUser(String username, String password) {
         // Check if user is blocked due to too many failed attempts
         if (isUserBlocked(username)) {
@@ -43,7 +46,7 @@ public class AuthService {
         }
 
         User user = userDAO.getUserByUsername(username);
-        if (user != null && user.password().equals(DigestUtils.sha512Hex(password))) {
+        if (user != null && BCrypt.checkpw(password, user.password())) { // ✅ Secure password check
             // Reset failed attempts on successful login
             failedAttempts.remove(username);
             blockedUsers.remove(username);
