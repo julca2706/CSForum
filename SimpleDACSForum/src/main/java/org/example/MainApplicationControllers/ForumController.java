@@ -65,7 +65,7 @@ public class ForumController {
     };
 
     /**
-     * Pobiera wszystkie posty na forum.
+     * Returns all the posts on the forum.
      */
     public Handler getAllPosts = ctx -> {
         List<Post> posts = postService.getAllPosts();
@@ -99,7 +99,7 @@ public class ForumController {
     };
 
     /**
-     * Usuwa post, jeśli należy do zalogowanego użytkownika.
+     * Deletes post.
      */
     public Handler deletePost = ctx -> {
         String sessionId = ctx.cookie("sessionId");
