@@ -8,14 +8,14 @@ import org.example.JavaModels.User;
 import org.example.JavaModels.Post;
 
 import java.util.List;
-
+//TODO
 public class ForumController {
-    private final AuthService authService = new AuthService();
+    private final AuthService authService = new AuthService(); //TODO
     private final PostService postService = new PostService();
 
     /**
      * Obsługuje rejestrację użytkownika.
-     */
+     */ //TODO
     public Handler register = ctx -> {
         String username = ctx.formParam("username");
         String password = ctx.formParam("password");
@@ -35,7 +35,7 @@ public class ForumController {
 
     /**
      * Obsługuje logowanie użytkownika.
-     */
+     */ //TODO
     public Handler login = ctx -> {
         String username = ctx.formParam("username");
         String password = ctx.formParam("password");
@@ -52,7 +52,7 @@ public class ForumController {
 
     /**
      * Obsługuje wylogowanie użytkownika.
-     */
+     */ //TODO
     public Handler logout = ctx -> {
         String sessionId = ctx.cookie("sessionId");
         if (sessionId != null) {
@@ -66,7 +66,7 @@ public class ForumController {
 
     /**
      * Returns all the posts on the forum.
-     */
+     */ //TODO
     public Handler getAllPosts = ctx -> {
         List<Post> posts = postService.getAllPosts();
         ctx.json(posts);
@@ -74,7 +74,7 @@ public class ForumController {
 
     /**
      * Publikowanie nowego posta.
-     */
+     */ //TODO
     public Handler createPost = ctx -> {
         String sessionId = ctx.cookie("sessionId");
         User user = SessionManager.getUser(sessionId);
@@ -100,7 +100,7 @@ public class ForumController {
 
     /**
      * Deletes post.
-     */
+     */ //TODO
     public Handler deletePost = ctx -> {
         String sessionId = ctx.cookie("sessionId");
         User user = SessionManager.getUser(sessionId);

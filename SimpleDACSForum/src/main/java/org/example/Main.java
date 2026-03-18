@@ -12,22 +12,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main {
     public static void main(String[] args) {
-        // 🔄 Konfiguracja Jacksona jako domyślny JSON Mapper
+        // Konfiguracja Jacksona jako domyślny JSON Mapper
         JsonMapper jsonMapper = new JavalinJackson(new ObjectMapper());
 
-        // ✅ Utworzenie aplikacji Javalin
+        // Utworzenie aplikacji Javalin
         Javalin app = Javalin.create(config -> {
             config.jsonMapper(jsonMapper); // ✅ Rejestracja Jacksona
             config.staticFiles.add("/static", Location.CLASSPATH); // ✅ Dodano obsługę plików statycznych (CSS, JS)
         }).start(8080);
 
-        // ✅ Rejestracja Thymeleaf
+        // Rejestracja Thymeleaf
         JavalinRenderer.register(new JavalinThymeleaf(), ".html");
 
-        // ✅ Konfiguracja WebUI
+        // Konfiguracja WebUI
         WebUI.configure(app);
 
-        // ✅ Konfiguracja ForumController
+        // Konfiguracja ForumController
         ForumController forumController = new ForumController();
         app.post("/register", forumController.register);
         app.post("/login", forumController.login);
